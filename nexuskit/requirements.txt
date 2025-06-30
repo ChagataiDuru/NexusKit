@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+python-multipart
+yt-dlp
+PyPDF2
+PyMuPDF
+reportlab
+Pillow
