@@ -1,0 +1,100 @@
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">PDF Editor</h1>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Edit a Single PDF</h5>
+            <div class="mb-3">
+                <label for="pdf-upload" class="form-label">Upload PDF</label>
+                <input class="form-control" type="file" id="pdf-upload" accept=".pdf">
+            </div>
+            <div id="pdf-viewer" class="mt-4" style="display: none;">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div id="thumbnails" class="list-group"></div>
+                    </div>
+                    <div class="col-md-8">
+                        <img id="page-view" src="" class="img-fluid">
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button id="add-blank-page-btn" class="btn btn-info">Add Blank Page</button>
+                    <button id="delete-pages-btn" class="btn btn-danger">Delete Selected Pages</button>
+                    <button id="reorder-pages-btn" class="btn btn-warning">Apply Page Order</button>
+                    <button id="add-signature-btn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signatureModal">Add Signature</button>
+                    <button id="download-btn" class="btn btn-success">Download Modified PDF</button>
+                </div>
+            </div>
+            <div id="status-messages" class="mt-3"></div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Merge Multiple PDFs</h5>
+            <div class="mb-3">
+                <label for="merge-pdf-upload" class="form-label">Upload PDFs to Merge</label>
+                <input class="form-control" type="file" id="merge-pdf-upload" accept=".pdf" multiple>
+            </div>
+            <ul id="merge-file-list" class="list-group mb-3"></ul>
+            <button id="merge-pdfs-btn" class="btn btn-primary">Merge PDFs</button>
+            <div id="merge-status-messages" class="mt-3"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Compress PDF</h5>
+            <div class="mb-3">
+                <label for="compress-pdf-upload" class="form-label">Upload PDF to Compress</label>
+                <input class="form-control" type="file" id="compress-pdf-upload" accept=".pdf">
+            </div>
+            <div class="mb-3">
+                <label for="compression-level" class="form-label">Compression Level</label>
+                <select class="form-select" id="compression-level">
+                    <option value="Low">Low</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+            <button id="compress-pdf-btn" class="btn btn-primary">Compress PDF</button>
+            <div id="compress-status-messages" class="mt-3"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Signature Modal -->
+<div class="modal fade" id="signatureModal" tabindex="-1" aria-labelledby="signatureModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="signatureModalLabel">Create or Upload Signature</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" id="signatureTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="draw-tab" data-bs-toggle="tab" data-bs-target="#draw" type="button" role="tab" aria-controls="draw" aria-selected="true">Draw Signature</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab" aria-controls="upload" aria-selected="false">Upload Signature</button>
+                    </li>
+                </ul>
+                <div class="tab-content mt-3" id="signatureTabContent">
+                    <div class="tab-pane fade show active" id="draw" role="tabpanel" aria-labelledby="draw-tab">
+                        <canvas id="signature-canvas" width="500" height="200"></canvas>
+                        <button id="clear-signature-btn" class="btn btn-secondary mt-2">Clear</button>
+                    </div>
+                    <div class="tab-pane fade" id="upload" role="tabpanel" aria-labelledby="upload-tab">
+                        <input class="form-control" type="file" id="signature-upload" accept=".png,.jpg,.jpeg">
+                        <img id="uploaded-signature-preview" src="" class="img-fluid mt-3" style="max-height: 200px; display: none;">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="save-signature-btn">Save Signature</button>
+            </div>
+        </div>
+    </div>
+</div>

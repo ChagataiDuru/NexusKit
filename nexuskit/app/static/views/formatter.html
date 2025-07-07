@@ -1,0 +1,25 @@
+<div class="container mt-4">
+    <h2>JSON/YAML Formatter</h2>
+    <p>Validate and format your JSON or YAML content with proper indentation.</p>
+
+    <div class="mb-3">
+        <label for="formatterInput" class="form-label">Input Text</label>
+        <textarea class="form-control" id="formatterInput" rows="12" placeholder="Enter JSON or YAML here..."></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label for="formatType" class="form-label">Format As</label>
+        <select class="form-select" id="formatType">
+            <option value="json" selected>JSON</option>
+            <option value="yaml">YAML</option>
+        </select>
+    </div>
+
+    <button type="button" class="btn btn-primary" id="formatButton">Format</button>
+    <button type="button" class="btn btn-secondary ms-2" id="clearButton">Clear</button>
+
+    <div class="mt-4">
+        <h3>Formatted Output</h3>
+        <pre><code id="formatterOutput" class="language-json"></code></pre>
+    </div>
+</div>

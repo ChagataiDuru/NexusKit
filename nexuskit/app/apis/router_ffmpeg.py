@@ -1,8 +1,12 @@
-from fastapi import APIRouter, File, UploadFile, BackgroundTasks
+from fastapi import APIRouter, File, UploadFile, BackgroundTasks, Depends
 from fastapi.responses import FileResponse
-from ..models.ffmpeg_models import FFmpegUploadResponse, FFmpegConvertRequest, TaskStatus
-from ..services import service_ffmpeg
+from ..models.ffmpeg_models import FFmpegUploadResponse, FFmpegConvertRequest
+from ..services import service_ffmpeg, task_service
+from ..database import get_db
 import os
+import asyncio
+import json
+from sse_starlette.sse import EventSourceResponse
 
 router = APIRouter()
 
@@ -12,9 +16,14 @@ async def upload_media(file: UploadFile = File(...)):
 
 @router.post("/convert")
 async def convert_media(request: FFmpegConvertRequest, background_tasks: BackgroundTasks):
+    task = task_service.get_task_status(request.task_id)
+    if not task:
+        return {"error": "Task not found"}
+    
     background_tasks.add_task(
         service_ffmpeg.run_ffmpeg_conversion,
         request.task_id,
+        task['result_path'], # The original file path is stored in result_path after upload
         request.output_format,
         request.extract_audio,
         request.resolution,
@@ -23,18 +32,24 @@ async def convert_media(request: FFmpegConvertRequest, background_tasks: Backgro
     )
     return {"message": "Conversion started", "task_id": request.task_id}
 
-@router.get("/status/{task_id}", response_model=TaskStatus)
-async def get_conversion_status(task_id: str):
-    status = service_ffmpeg.get_ffmpeg_task_status(task_id)
-    if status:
-        return status
-    return {"task_id": task_id, "status": "not_found"}
+@router.get("/tasks/{task_id}/stream")
+async def stream_task_progress(task_id: str, db=Depends(get_db)):
+    async def event_generator():
+        last_progress = -1
+        while True:
+            task = task_service.get_task_status(task_id)
+            if task:
+                if task['progress'] != last_progress:
+                    yield {"data": json.dumps(task)}
+                    last_progress = task['progress']
+                if task['status'] in ['completed', 'failed']:
+                    break
+            await asyncio.sleep(1)
+    return EventSourceResponse(event_generator())
 
-@router.get("/download/{task_id}/{filename}")
-async def download_converted_file(task_id: str, filename: str):
-    task = service_ffmpeg.TASKS.get(task_id)
+@router.get("/download/{task_id}")
+async def download_converted_file(task_id: str):
+    task = task_service.get_task_status(task_id)
     if task and task['status'] == 'completed':
-        file_path = os.path.join(os.path.dirname(task['original_file_path']), filename)
-        if os.path.exists(file_path):
-            return FileResponse(file_path, media_type='application/octet-stream', filename=filename)
+        return FileResponse(task['result_path'], media_type='application/octet-stream', filename=os.path.basename(task['result_path']))
     return {"error": "File not found or conversion not complete"}

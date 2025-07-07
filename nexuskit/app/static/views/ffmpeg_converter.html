@@ -1,0 +1,63 @@
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">FFmpeg Converter</h1>
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="media-upload" class="form-label">Upload Media File</label>
+                <input class="form-control" type="file" id="media-upload" accept="video/*,audio/*">
+            </div>
+            <div id="conversion-options" style="display: none;">
+                <div class="mb-3">
+                    <label for="output-category" class="form-label">Output Category</label>
+                    <select id="output-category" class="form-select">
+                        <option value="video">Video</option>
+                        <option value="audio">Audio</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="output-format" class="form-label">Output Format</label>
+                    <select id="output-format" class="form-select"></select>
+                </div>
+                <div id="video-options" style="display: none;">
+                    <div class="mb-3">
+                        <label for="resolution" class="form-label">Resolution</label>
+                        <select id="resolution" class="form-select">
+                            <option value="">Original</option>
+                            <option value="1920:-1">1080p</option>
+                            <option value="1280:-1">720p</option>
+                            <option value="854:-1">480p</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quality" class="form-label">Quality</label>
+                        <select id="quality" class="form-select">
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="audio-options" style="display: none;">
+                    <div class="mb-3">
+                        <label for="bitrate" class="form-label">Bitrate</label>
+                        <select id="bitrate" class="form-select">
+                            <option value="320k">320kbps</option>
+                            <option value="256k">256kbps</option>
+                            <option value="192k">192kbps</option>
+                            <option value="128k">128kbps</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="extract-audio">
+                    <label class="form-check-label" for="extract-audio">
+                        Extract Audio (from video files)
+                    </label>
+                </div>
+                <button id="convert-btn" class="btn btn-primary">Start Conversion</button>
+            </div>
+            <div id="status-messages" class="mt-3"></div>
+        </div>
+    </div>
+</div>

@@ -6,3 +6,5 @@ PyPDF2
 PyMuPDF
 reportlab
 Pillow
+sse-starlette
+ffmpeg-python

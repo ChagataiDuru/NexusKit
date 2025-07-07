@@ -1,56 +1,45 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexusKit - Dashboard</title>
+    <title>NexusKit</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">NexusKit</h1>
-        <p class="text-center text-muted mb-5">A suite of useful tools for personal and small group use.</p>
-        <div class="row">
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">yt-dlp Wrapper</h5>
-                        <p class="card-text">Download YouTube videos and shorts in various formats.</p>
-                        <a href="/static/ytdl/index.html" class="btn btn-primary">Go to Tool</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">PDF Editor</h5>
-                        <p class="card-text">Basic PDF manipulations like adding signatures, deleting pages, and reordering pages.</p>
-                        <a href="/static/pdf_editor/index.html" class="btn btn-primary">Go to Tool</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">FFmpeg Wrapper</h5>
-                        <p class="card-text">Common media conversions for video and audio files.</p>
-                        <a href="/static/ffmpeg_converter/index.html" class="btn btn-primary">Go to Tool</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Basic Image Editor</h5>
-                        <p class="card-text">Crop, resize, apply filters, and perform basic background removal.</p>
-                        <a href="/static/image_editor/index.html" class="btn btn-primary">Go to Tool</a>
-                    </div>
-                </div>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#/">NexusKit</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#/ytdl">YouTube Downloader</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#/pdf-editor">PDF Editor</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#/ffmpeg-converter">FFmpeg Converter</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#/image-editor">Image Editor</a>
+                    </li>
+                </ul>
             </div>
         </div>
-    </div>
+    </nav>
+
+    <div id="app-container" class="container mt-4"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/main.js"></script>
+    <script src="/static/js/router.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/error_modal.js"></script>
+    <script src="/static/js/main.js"></script>
 </body>
 </html>

@@ -1,8 +1,9 @@
-from fastapi import APIRouter, File, UploadFile
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, File, UploadFile, Depends, Form
+from fastapi.responses import FileResponse, StreamingResponse
 from ..models.pdf_models import PDFUploadResponse, DeletePagesRequest, ReorderPagesRequest, AddSignatureRequest
-from ..services import service_pdf
+from ..services import service_pdf, task_service
 import os
+from typing import List
 
 router = APIRouter()
 
@@ -12,7 +13,7 @@ async def upload_pdf(file: UploadFile = File(...)):
 
 @router.get("/preview/{task_id}/{page_name}")
 async def get_preview_image(task_id: str, page_name: str):
-    task_dir = f"/var/tmp/nexuskit_data/{task_id}"
+    task_dir = os.path.join(task_service.cleanup_service.TEMP_DIR, task_id)
     image_path = os.path.join(task_dir, page_name)
     if os.path.exists(image_path):
         return FileResponse(image_path)
@@ -34,9 +35,19 @@ async def reorder_pages(task_id: str, request: ReorderPagesRequest):
 async def add_signature(task_id: str, request: AddSignatureRequest):
     return service_pdf.add_signature(task_id, request.page_index, request.x, request.y, request.width, request.signature_data_url)
 
+@router.post("/merge")
+async def merge_pdfs(files: List[UploadFile] = File(...)):
+    merged_pdf = service_pdf.merge_pdfs(files)
+    return StreamingResponse(merged_pdf, media_type="application/pdf", headers={"Content-Disposition": "attachment; filename=merged.pdf"})
+
+@router.post("/compress")
+async def compress_pdf(file: UploadFile = File(...), level: str = Form(...)):
+    compressed_pdf = service_pdf.compress_pdf(file, level)
+    return StreamingResponse(compressed_pdf, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=compressed.pdf"})
+
 @router.get("/{task_id}/download")
 async def download_pdf(task_id: str):
-    task = service_pdf.TASKS.get(task_id)
-    if task:
-        return FileResponse(task['original_pdf_path'], media_type='application/pdf', filename=os.path.basename(task['original_pdf_path']))
+    task = task_service.get_task_status(task_id)
+    if task and task['status'] == 'completed':
+        return FileResponse(task['result_path'], media_type='application/pdf', filename=os.path.basename(task['result_path']))
     return {"error": "File not found"}

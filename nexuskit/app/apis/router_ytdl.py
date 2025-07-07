@@ -1,8 +1,12 @@
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.responses import FileResponse
-from ..models.ytdl_models import YTdlRequest, YTdlInfo, YTdlDownloadRequest, Task
-from ..services import service_ytdl
+from ..models.ytdl_models import YTdlRequest, YTdlInfo, YTdlDownloadRequest
+from ..services import service_ytdl, task_service
+from ..database import get_db
 import os
+import asyncio
+import json
+from sse_starlette.sse import EventSourceResponse
 
 router = APIRouter()
 
@@ -13,16 +17,27 @@ async def fetch_info(request: YTdlRequest):
 @router.post("/download-request")
 async def download_request(request: YTdlDownloadRequest, background_tasks: BackgroundTasks):
     task_id = service_ytdl.create_download_task(request.url, request.format_id, request.audio_only, request.audio_format)
-    background_tasks.add_task(service_ytdl.run_download_task, task_id)
+    background_tasks.add_task(service_ytdl.run_download_task, task_id, request.url, request.format_id, request.audio_only, request.audio_format)
     return {"task_id": task_id}
 
-@router.get("/task-status/{task_id}", response_model=Task)
-async def task_status(task_id: str):
-    return service_ytdl.TASKS.get(task_id, {"task_id": task_id, "status": "not_found", "result": None})
+@router.get("/tasks/{task_id}/stream")
+async def stream_task_progress(task_id: str, db=Depends(get_db)):
+    async def event_generator():
+        last_progress = -1
+        while True:
+            task = task_service.get_task_status(task_id)
+            if task:
+                if task['progress'] != last_progress:
+                    yield {"data": json.dumps(task)}
+                    last_progress = task['progress']
+                if task['status'] in ['completed', 'failed']:
+                    break
+            await asyncio.sleep(1)
+    return EventSourceResponse(event_generator())
 
 @router.get("/download/{task_id}")
 async def download_file(task_id: str):
-    task = service_ytdl.TASKS.get(task_id)
+    task = task_service.get_task_status(task_id)
     if task and task['status'] == 'completed':
-        return FileResponse(task['result'], media_type='application/octet-stream', filename=os.path.basename(task['result']))
+        return FileResponse(task['result_path'], media_type='application/octet-stream', filename=os.path.basename(task['result_path']))
     return {"error": "File not found or task not completed"}

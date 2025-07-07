@@ -1,11 +1,10 @@
-import yt_dlp
-import uuid
-import os
-from . import cleanup_service
 
-TASKS = {}
+import yt_dlp
+import os
+from . import cleanup_service, task_service
 
 def fetch_video_info(url: str):
+    """Fetches video information without downloading."""
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,
@@ -21,43 +20,41 @@ def fetch_video_info(url: str):
         }
 
 def create_download_task(url: str, format_id: str, audio_only: bool, audio_format: str | None):
-    task_id = str(uuid.uuid4())
-    TASKS[task_id] = {
-        "status": "pending", 
-        "result": None,
-        "url": url,
-        "format_id": format_id,
-        "audio_only": audio_only,
-        "audio_format": audio_format
+    """Creates a download task in the database."""
+    return task_service.create_task(tool_name='ytdl')
+
+def run_download_task(task_id: str, url: str, format_id: str, audio_only: bool, audio_format: str | None):
+    """Runs the download task, updating progress in the database."""
+    output_dir = os.path.join(cleanup_service.TEMP_DIR, task_id)
+    os.makedirs(output_dir, exist_ok=True)
+
+    def progress_hook(d):
+        if d['status'] == 'downloading':
+            progress = int(d['_percent_str'].strip().replace('%', ''))
+            task_service.update_task_progress(task_id, progress)
+        elif d['status'] == 'finished':
+            task_service.update_task_progress(task_id, 100)
+
+    ydl_opts = {
+        'outtmpl': f'{output_dir}/%(title)s.%(ext)s',
+        'format': format_id,
+        'progress_hooks': [progress_hook],
     }
-    return task_id
 
-def run_download_task(task_id: str):
-    task = TASKS[task_id]
+    if audio_only:
+        ydl_opts['postprocessors'] = [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': audio_format,
+        }]
+
     try:
-        output_dir = os.path.join(cleanup_service.TEMP_DIR, task_id)
-        os.makedirs(output_dir, exist_ok=True)
-
-        ydl_opts = {
-            'outtmpl': f'{output_dir}/%(title)s.%(ext)s',
-            'format': task['format_id'],
-        }
-
-        if task['audio_only']:
-            ydl_opts['postprocessors'] = [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': task['audio_format'],
-            }]
-
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([task['url']])
-            # Get the downloaded file name
+            ydl.download([url])
             result_file = os.listdir(output_dir)[0]
-            TASKS[task_id]["status"] = "completed"
-            TASKS[task_id]["result"] = f"/api/v1/ytdl/download/{task_id}/{result_file}"
-
+            result_path = os.path.join(output_dir, result_file)
+            task_service.complete_task(task_id, result_path)
     except Exception as e:
-        TASKS[task_id]["status"] = "failed"
-        TASKS[task_id]["result"] = str(e)
+        task_service.fail_task(task_id, str(e))
     finally:
         cleanup_service.schedule_cleanup(task_id)
+
